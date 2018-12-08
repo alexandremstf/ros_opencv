@@ -71,12 +71,13 @@ def main(args):
                 ((x, y), radius) = cv2.minEnclosingCircle(biggestContour)
                 positionMoments = cv2.moments(biggestContour)
                 center = (int(positionMoments["m10"] / positionMoments["m00"]), int(positionMoments["m01"] / positionMoments["m00"]))
-        
-                if radius > 10:
-                    cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
-                    cv2.circle(frame, center, 5, (0, 0, 255), -1)
-        
-            points.appendleft(center)
+
+                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 1)
+                cv2.circle(frame, center, 3, (0, 0, 255), -1)
+
+            print center
+            if not center == None :
+                points.appendleft(center)
 
             for i in range(1, len(points)):
                 if points[i - 1] is not None or points[i] is not None:
