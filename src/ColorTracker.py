@@ -14,6 +14,7 @@ bridge = CvBridge()
 bgr_image = numpy.zeros((256, 256, 3), dtype = "uint8")
 
 points = deque([], maxlen = 50000)
+drawPath = False
 
 def callback(data):
     try:
@@ -58,25 +59,28 @@ def main(args):
         mask = image.copy()
         frame = bgr_image.copy()
 
-        contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = imutils.grab_contours(contours)
-        center = None
+        global drawPath
 
-        if len(contours) > 0:
-            c = max(contours, key=cv2.contourArea)
-            ((x, y), radius) = cv2.minEnclosingCircle(c)
-            M = cv2.moments(c)
-            center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-    
-            if radius > 10:
-                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
-    
-        points.appendleft(center)
+        if drawPath :
+            contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours = imutils.grab_contours(contours)
+            center = None
 
-        for i in range(1, len(points)):
-            if points[i - 1] is not None or points[i] is not None:
-                cv2.line(frame, points[i - 1], points[i], (0, 0, 255), 2)
+            if len(contours) > 0:
+                biggestContour = max(contours, key = cv2.contourArea)
+                ((x, y), radius) = cv2.minEnclosingCircle(biggestContour)
+                positionMoments = cv2.moments(biggestContour)
+                center = (int(positionMoments["m10"] / positionMoments["m00"]), int(positionMoments["m01"] / positionMoments["m00"]))
+        
+                if radius > 10:
+                    cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
+                    cv2.circle(frame, center, 5, (0, 0, 255), -1)
+        
+            points.appendleft(center)
+
+            for i in range(1, len(points)):
+                if points[i - 1] is not None or points[i] is not None:
+                    cv2.line(frame, points[i - 1], points[i], (0, 0, 255), 2)
 
         cv2.imshow("image", image)
         cv2.imshow("frame", frame)
@@ -84,6 +88,9 @@ def main(args):
 
         if key == ord("c"):
             points.clear()
+
+        if key == ord("s"):
+            drawPath = not drawPath
 
     cv2.destroyAllWindows()
 
